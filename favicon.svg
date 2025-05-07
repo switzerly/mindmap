@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Transparent background -->
+  <circle cx="32" cy="32" r="30" fill="transparent" />
+  
+  <!-- Circular outline with glow -->
+  <circle cx="32" cy="32" r="28" 
+          fill="transparent" 
+          stroke="rgba(0, 200, 200, 0.9)" 
+          stroke-width="2" 
+          filter="drop-shadow(0 0 5px rgba(0, 200, 200, 0.7))" />
+  
+  <!-- Square in the center -->
+  <rect x="22" y="22" width="20" height="20" rx="2" ry="2" 
+        fill="rgba(0, 200, 200, 0.1)" 
+        stroke="rgba(0, 200, 200, 0.9)" 
+        stroke-width="2" 
+        filter="drop-shadow(0 0 5px rgba(0, 200, 200, 0.7))" />
+</svg>

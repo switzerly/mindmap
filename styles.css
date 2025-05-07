@@ -1,0 +1,1592 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=Libre+Franklin:wght@400;700&display=swap');
+
+body {
+    font-family: 'Noto Sans', 'Libre Franklin', sans-serif;
+    background-color: #000000;
+    height: 100vh;
+    overflow: hidden;
+    -webkit-user-select: none; 
+    -ms-user-select: none; 
+    user-select: none; 
+    position: fixed;
+    width: 100%;
+    touch-action: manipulation;
+}
+
+#container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+#bubbles-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-origin: 0 0;
+    will-change: transform;
+}
+
+.bubble {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: transparent;
+    border: 2px solid rgba(75, 105, 177, 0.7);
+    box-shadow: 0 0 15px rgba(100, 180, 255, 0.5);
+    cursor: default;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease, transform 0.3s, border-radius 0.5s ease;
+    animation: float 3s infinite ease-in-out;
+    animation-delay: calc(var(--delay) * 1s);
+    overflow: hidden;
+}
+
+/* Styles for the bubble text area */
+.bubble-text {
+    background: transparent;
+    border: none;
+    color: white;
+    resize: none;
+    text-align: center;
+    font-family: 'Noto Sans', 'Libre Franklin', sans-serif;
+    width: 80%;
+    height: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 5px;
+    outline: none;
+}
+
+.bubble.selected {
+    z-index: 90;
+}
+
+.bubble.new {
+    border: 2px solid rgba(75, 177, 105, 0.7);
+    box-shadow: 0 0 20px rgba(100, 255, 150, 0.7);
+}
+
+.bubble-text {
+    width: 80%; 
+    height: 80%; 
+    background: none;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    resize: none;
+    overflow: auto;
+    padding: 10px; 
+    z-index: 10;
+    margin: 0;
+    line-height: 1.5;
+    word-wrap: break-word; 
+    
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-user-select: text; 
+    -ms-user-select: text; 
+    user-select: text; 
+    caret-color: white;
+    cursor: text;
+    pointer-events: none;
+}
+
+.bubble.large-content .bubble-text {
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    max-height: 80%;
+}
+
+.bubble-text::placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.bubble-text::-webkit-scrollbar {
+    display: none; 
+}
+
+.bubble-text {
+    -ms-overflow-style: none; 
+    scrollbar-width: none; 
+}
+
+.bubble.editing {
+    border: 3px solid rgba(255, 215, 0, 1);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 50px rgba(255, 215, 0, 0.4);
+    z-index: 100;
+    transform: scale(1.05);
+}
+
+.bubble.editing .bubble-text {
+    display: flex;
+    background-color: rgba(0, 0, 0, 0.3);
+    caret-color: #fff;
+    pointer-events: auto;
+}
+
+.bubble.dragging {
+    z-index: 100;
+    cursor: default;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+}
+
+.bubble.shrinking {
+    transform: scale(0.85);
+    opacity: 0.85;
+    transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+}
+
+.bubble:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 20px rgba(120, 200, 255, 0.7), inset 0 0 35px rgba(255, 255, 255, 0.4);
+    cursor: default;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes bubble-appear {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes bubble-pop {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(0);
+        opacity: 0;
+    }
+}
+
+.bubble.appearing {
+    animation: bubble-appear 0.5s forwards;
+}
+
+.bubble.popping {
+    animation: bubble-pop 0.4s forwards;
+    pointer-events: none !important;
+    z-index: 0;
+    opacity: 0.8;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    transform-origin: center center;
+}
+
+.bubble.popping .bubble-text {
+    display: none !important; 
+    pointer-events: none !important;
+    opacity: 0;
+    caret-color: transparent !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+.bubble.popping::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    z-index: 100;
+}
+
+.sparkle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: white;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+}
+
+@keyframes sparkle-animation {
+    0% {
+        transform: translate(0, 0) scale(0);
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--tx), var(--ty)) scale(var(--scale));
+        opacity: 0;
+    }
+}
+
+.connection-line {
+    position: absolute;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 1;
+    height: 2px !important;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    /* Remove animation to prevent flickering */
+    transition: opacity 0.1s linear;
+}
+
+@keyframes connection-pop {
+    0% {
+        opacity: 0;
+        transform: scaleY(0);
+    }
+    100% {
+        opacity: 1;
+        transform: scaleY(1);
+    }
+}
+
+.connection-line.popping {
+    animation: connection-pop 0.4s forwards;
+}
+
+@keyframes connection-pop {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .bubble {
+        width: 120px;
+        height: 120px;
+        box-shadow: 0 0 10px rgba(100, 180, 255, 0.5);
+        animation-duration: 2s;
+    }
+    
+    .bubble-text {
+        font-size: 14px;
+    }
+    
+    .page-footer {
+        bottom: 15px;
+        font-size: 12px;
+    }
+    
+    .reset-button {
+        font-size: 14px;
+        margin-left: 10px;
+    }
+    
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(0);
+        }
+    }
+    
+    #tools-container {
+        bottom: 50px;
+        gap: 15px;
+    }
+    
+    .tool-button {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .trash-button svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .bubble {
+        width: 100px;
+        height: 100px;
+        box-shadow: 0 0 8px rgba(100, 180, 255, 0.4);
+    }
+    
+    .bubble-text {
+        font-size: 12px;
+    }
+    
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(0);
+        }
+    }
+}
+
+@media (hover: none) {
+    .bubble:hover {
+        transform: none;
+        box-shadow: 0 0 15px rgba(100, 180, 255, 0.5);
+    }
+    
+    .bubble.editing {
+        transform: scale(1.1);
+    }
+    
+    .page-footer a:hover {
+        color: rgba(255, 255, 255, 0.7);
+        text-shadow: none;
+    }
+    
+    .reset-button:hover {
+        color: rgba(255, 255, 255, 0.5);
+        transform: none;
+        text-shadow: none;
+    }
+    
+    .reset-button:active {
+        color: rgba(120, 200, 255, 0.8);
+        transform: rotate(180deg);
+        text-shadow: 0 0 5px rgba(120, 200, 255, 0.5);
+    }
+}
+
+/* Tools container */
+#tools-container {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 20px;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.top-right-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    gap: 15px;
+}
+
+.tool-button {
+    width: 50px;
+    height: 50px;
+    pointer-events: auto;
+    border-radius: 50%;
+    background-color: rgba(20, 20, 20, 0.6);
+    border: 2px solid rgba(80, 150, 255, 1); /* Увеличиваем непрозрачность до 1 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    pointer-events: auto;
+    box-shadow: 0 0 15px rgba(80, 150, 255, 0.5);
+}
+
+.ai-button {
+    position: relative;
+    overflow: visible;
+    border-color: rgba(80, 150, 255);
+    transition: all 0.5s ease;
+}
+
+.ai-button:hover {
+    border-color: rgba(0, 200, 200, 0.9); /* Бирюзовый цвет */
+    box-shadow: 0 0 15px rgba(0, 200, 200, 0.5);
+}
+
+.ai-button svg {
+    fill: rgba(80, 150, 255); /* Увеличиваем непрозрачность до 1 */
+    transition: all 0.5s ease;
+}
+
+.ai-button:hover svg {
+    fill: rgba(0, 200, 200, 0.9); /* Бирюзовый цвет */
+    transform: rotate(360deg); /* Вращение на 360 градусов */
+    transition: fill 0.5s ease, transform 1.6s cubic-bezier(0.4, 0, 0.2, 1); /* Замедленное вращение */
+}
+
+/* Добавляем стили для новой иконки */
+
+/* Styles for image upload feature */
+.paperclip-icon {
+    position: absolute;
+    bottom: 15%;
+    right: 15%;
+    width: 10.5%;
+    height: 10.5%;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    z-index: 20;
+    transition: color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0; /* Hide by default */
+}
+
+/* Show paperclip only on bubble hover */
+.bubble:hover .paperclip-icon {
+    opacity: 1;
+}
+
+.paperclip-icon svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: white;
+    stroke-width: 2;
+}
+
+.paperclip-icon:hover {
+    opacity: 1;
+}
+
+.bubble-image-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: none;
+    z-index: 5;
+}
+
+.bubble-image {
+    position: absolute;
+    object-fit: cover;
+    pointer-events: none;
+}
+
+.bubble.has-image .bubble-image-container {
+    display: block;
+}
+
+.bubble.has-image .bubble-text {
+    display: none;
+}
+
+.image-remove-button {
+    position: absolute;
+    top: 15%;
+    right: 15%;
+    width: 10.5%;
+    height: 10.5%;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 30;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+    display: none;
+}
+
+.image-remove-button:hover {
+    opacity: 1;
+}
+
+.image-remove-button::before,
+.image-remove-button::after {
+    content: '';
+    position: absolute;
+    width: 60%;
+    height: 10%;
+    background-color: white;
+}
+
+.image-remove-button::before {
+    transform: rotate(45deg);
+}
+
+.image-remove-button::after {
+    transform: rotate(-45deg);
+}
+
+.bubble.has-image .image-remove-button {
+    display: flex;
+}
+
+.bubble.has-image {
+    cursor: default !important;
+}
+
+.bubble.has-image:hover {
+    cursor: default !important;
+}
+
+.bubble.has-image .bubble-image {
+    pointer-events: none;
+}
+
+/* Only apply move cursor when specifically in image edit mode */
+.bubble.image-edit-mode {
+    cursor: move !important;
+}
+
+.bubble.image-edit-mode .bubble-image {
+    pointer-events: auto !important;
+}
+
+
+
+.image-upload-input {
+    display: none;
+}
+.mindmap-icon {
+    transition: transform 0.8s ease;
+}
+
+.ai-button.active svg {
+    fill: rgba(0, 200, 200, 0.9); /* Бирюзовый цвет */
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.page-footer {
+    position: fixed;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+    z-index: 10;
+    padding: 10px;
+    pointer-events: none;
+}
+
+.footer-left {
+    margin-right: 80px;
+    text-align: right;
+}
+
+.footer-right {
+    text-align: left;
+}
+
+.page-footer a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    pointer-events: auto;
+    transition: color 0.3s, text-shadow 0.3s;
+    position: relative;
+    display: inline-block;
+}
+
+.page-footer a:hover {
+    color: rgba(80, 150, 255, 0.8);
+    text-shadow: 0 0 5px rgba(80, 150, 255, 0.5), 0 0 15px rgba(80, 150, 255, 0.3), 0 0 25px rgba(80, 150, 255, 0.2);
+}
+
+.page-footer .dns-link:hover {
+    color: rgba(255, 80, 80, 0.8);
+    text-shadow: 0 0 5px rgba(255, 80, 80, 0.5), 0 0 15px rgba(255, 80, 80, 0.3), 0 0 25px rgba(255, 80, 80, 0.2);
+}
+
+.reset-button {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.6s ease, color 0.6s, text-shadow 0.6s;
+    display: inline-block;
+    margin-left: 2px;
+    pointer-events: auto;
+    user-select: none;
+}
+
+.reset-button:hover {
+    color: rgba(255, 215, 0, 0.9);
+    transform: rotate(180deg);
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+.reset-tool-button {
+    color: rgba(255, 255, 255, 0.9);
+    position: relative;
+    overflow: visible;
+}
+
+.reset-icon, .countdown-timer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+}
+
+.reset-icon {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.reset-icon .circular-arrow {
+    stroke: rgba(80, 150, 255);
+    transition: stroke 0.3s ease;
+    transform: rotate(0deg); /* Explicitly set initial rotation */
+}
+
+/* Hide arrows when countdown is active (no hover) */
+.reset-tool-button.countdown-active .reset-icon {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+/* Show arrows when hovering during countdown */
+.reset-tool-button.countdown-active:hover .reset-icon {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.countdown-timer {
+    font-size: 18px;
+    font-weight: bold;
+    color: rgba(255, 215, 0, 0.9);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.reset-tool-button:hover {
+    border-color: rgba(255, 215, 0, 0.9);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+}
+
+@keyframes clockwise-spin-180 {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(180deg);
+    }
+}
+
+/* Animation class for the rotating arrow */
+.reset-icon .circular-arrow.rotating {
+    animation: clockwise-spin-180 1.6s cubic-bezier(0.4, 0, 0.2, 1);
+    animation-fill-mode: forwards;
+}
+
+/* Normal hover state - yellow color and clockwise rotation */
+.reset-tool-button:hover .reset-icon .circular-arrow {
+    stroke: rgba(255, 215, 0);
+    transition: stroke 0.3s ease;
+}
+
+/* Add a separate class for hover animation to avoid conflicts */
+.reset-tool-button:hover .reset-icon .circular-arrow:not(.rotating) {
+    animation: clockwise-spin-180 1.6s cubic-bezier(0.4, 0, 0.2, 1);
+    animation-fill-mode: forwards;
+}
+
+/* Hover during countdown - green color, no animation */
+.reset-tool-button.countdown-active:hover .reset-icon .circular-arrow {
+    stroke: rgba(50, 205, 50); /* Green color */
+    transition: stroke 0.3s ease;
+    animation: none !important; /* Disable any animation */
+    transform: rotate(0deg); /* Reset rotation */
+}
+
+/* States for the reset button */
+.reset-tool-button.countdown-active {
+    border-color: rgba(255, 215, 0, 0.9); /* Yellow border by default during countdown */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+}
+
+.reset-tool-button.countdown-active .reset-icon {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.reset-tool-button.countdown-active .countdown-timer {
+    opacity: 1; /* Visible by default */
+    color: rgba(255, 215, 0, 0.9); /* Yellow color */
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.reset-tool-button.countdown-active:hover {
+    border-color: rgba(50, 205, 50, 0.9); /* Green border */
+    box-shadow: 0 0 15px rgba(50, 205, 50, 0.6);
+}
+
+.reset-tool-button.countdown-active:hover .countdown-timer {
+    opacity: 0;
+}
+
+.reset-icon .circular-arrow.rotating {
+    animation: clockwise-spin-180 1.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reset-tool-button svg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin-top: -10px;
+    margin-left: -10px;
+    stroke: rgba(80, 150, 255);
+    transition: stroke 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.reset-tool-button:hover svg {
+    stroke: rgba(255, 255, 60, 0.9);
+    animation: rotateReset 0.6s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+#buttons-container, .round-button {
+    display: none;
+}
+
+.edit-indicator {
+    display: none;
+}
+
+.bubble:hover .edit-indicator {
+    display: none;
+}
+
+.bubble.editing .edit-indicator {
+    display: none;
+}
+
+@keyframes rotateReset {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(-180deg);
+    }
+}
+
+.trash-button {
+    color: rgba(255, 255, 255, 0.9);
+    overflow: visible;
+}
+
+.trash-button svg {
+    transition: all 0.6s ease;
+    stroke: rgb(80, 150, 255);
+    overflow: visible;
+}
+
+.trash-button svg .trash-lid,
+.trash-button svg .trash-body,
+.trash-button svg .trash-handle,
+.trash-button svg line {
+    stroke: rgb(80, 150, 255);
+    fill: none;
+}
+
+.trash-button svg .trash-lid {
+    transform: translateY(-1px);
+}
+
+.trash-button svg .trash-handle {
+    transform: translateY(-2px);
+}
+
+.trash-button:hover {
+    border-color: rgba(255, 60, 60, 1);
+    box-shadow: 0 0 15px rgba(255, 60, 60, 0.8);
+    transition: all 0.3s ease;
+}
+
+.trash-button:hover svg {
+    stroke: rgba(255, 60, 60, 1);
+    transition: all 0.3s ease;
+}
+
+.trash-button:hover svg .trash-lid {
+    transform: translateY(-8px) translateX(-4px) rotate(-25deg);
+    transform-origin: center top;
+    transition: transform 0.6s ease;
+    stroke: rgba(255, 60, 60, 1);
+    stroke-width: 2.5;
+}
+
+.trash-button:hover svg .trash-handle {
+    transform: translateY(-9px) translateX(-4px) rotate(-25deg);
+    transform-origin: center top;
+    transition: transform 0.6s ease;
+    stroke: rgba(255, 60, 60, 1);
+    stroke-width: 2.5;
+}
+
+.trash-button:hover svg .trash-body {
+    stroke: rgba(255, 60, 60, 1);
+    stroke-width: 2.5;
+}
+
+.trash-button:hover svg line {
+    stroke: rgba(255, 60, 60, 1);
+    stroke-width: 1.9;
+}
+
+.trash-button.active {
+    border-color: rgba(255, 60, 60, 0.9);
+    box-shadow: 0 0 15px rgba(255, 60, 60, 0.6);
+}
+
+.trash-button.active svg {
+    stroke: rgba(255, 60, 60, 0.9);
+}
+
+/* Styles for the clear text button */
+.clear-text-button {
+    position: relative;
+    overflow: visible;
+}
+
+.clear-text-button .t-letter {
+    font-size: 24px;
+    font-weight: bold;
+    color: rgba(80, 150, 255, 0.8);
+    transition: all 0.3s ease;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.clear-text-button .strike-through {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    stroke: rgba(255, 215, 0, 0.9);
+    stroke-width: 1.5;
+    stroke-dasharray: 50;
+    stroke-dashoffset: 50;
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.3s ease;
+    opacity: 0; /* Hide by default */
+}
+
+.clear-text-button:hover {
+    border-color: rgba(255, 215, 0, 0.9);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+}
+
+.clear-text-button:hover .t-letter {
+    color: rgba(255, 215, 0, 0.9);
+}
+
+.clear-text-button:hover .strike-through {
+    stroke-dashoffset: 0;
+    opacity: 1;
+    transition: stroke-dashoffset 0.8s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.3s ease;
+}
+
+.clear-text-button:not(:hover) .strike-through {
+    stroke-dashoffset: 50;
+    opacity: 0;
+    transition: opacity 0s;
+}
+
+/* Error state for clear-text button */
+.clear-text-button.error-flash {
+    animation: clear-text-error 1s ease;
+}
+
+.clear-text-button.error-flash .t-letter {
+    animation: clear-text-letter-error 1s ease;
+}
+
+.clear-text-button.error-flash .strike-through {
+    animation: clear-text-strike-error 1s ease;
+    stroke-dashoffset: 0;
+    opacity: 1;
+}
+
+@keyframes clear-text-error {
+    0% {
+        border-color: rgba(255, 215, 0, 0.9);
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    }
+    50% {
+        border-color: rgba(255, 60, 60, 1);
+        box-shadow: 0 0 15px rgba(255, 60, 60, 0.8);
+    }
+    100% {
+        border-color: rgba(255, 215, 0, 0.9);
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    }
+}
+
+@keyframes clear-text-letter-error {
+    0% {
+        color: rgba(255, 215, 0, 0.9);
+    }
+    50% {
+        color: rgba(255, 60, 60, 1);
+    }
+    100% {
+        color: rgba(255, 215, 0, 0.9);
+    }
+}
+
+@keyframes clear-text-strike-error {
+    0% {
+        stroke: rgba(255, 215, 0, 0.9);
+    }
+    50% {
+        stroke: rgba(255, 60, 60, 1);
+    }
+    100% {
+        stroke: rgba(255, 215, 0, 0.9);
+    }
+}
+
+/* Success state for clear-text button */
+.clear-text-button.success-flash {
+    animation: clear-text-success 1s ease;
+}
+
+.clear-text-button.success-flash .t-letter {
+    animation: clear-text-letter-success 1s ease;
+}
+
+.clear-text-button.success-flash .strike-through {
+    animation: clear-text-strike-success 1s ease;
+    stroke-dashoffset: 0;
+    opacity: 1;
+}
+
+@keyframes clear-text-success {
+    0% {
+        border-color: rgba(255, 215, 0, 0.9);
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    }
+    50% {
+        border-color: rgba(50, 205, 50, 0.9);
+        box-shadow: 0 0 15px rgba(50, 205, 50, 0.8);
+    }
+    100% {
+        border-color: rgba(255, 215, 0, 0.9);
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    }
+}
+
+@keyframes clear-text-letter-success {
+    0% {
+        color: rgba(255, 215, 0, 0.9);
+    }
+    50% {
+        color: rgba(50, 205, 50, 0.9);
+    }
+    100% {
+        color: rgba(255, 215, 0, 0.9);
+    }
+}
+
+@keyframes clear-text-strike-success {
+    0% {
+        stroke: rgba(255, 215, 0, 0.9);
+    }
+    50% {
+        stroke: rgba(50, 205, 50, 0.9);
+    }
+    100% {
+        stroke: rgba(255, 215, 0, 0.9);
+    }
+}
+
+.shape-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+}
+
+.shape-indicator {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.shape-toggle {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgb(80, 150, 255);
+    transform-origin: center center;
+    transition: border-color 0.3s ease; /* Только переход для цвета границы */
+    box-shadow: 0 0 10px rgba(80, 150, 255, 0.5);
+    background-color: rgba(80, 150, 255, 0.1);
+}
+
+.shape-button:hover {
+    border-color: #c92665;
+    box-shadow: 0 0 15px rgba(201, 38, 101, 0.6);
+}
+
+.shape-button:hover .shape-toggle {
+    border-color: #c92665;
+    /* Нет анимации при наведении */
+}
+
+/* Состояния для круга и квадрата */
+.shape-button.circle-mode .shape-toggle {
+    border-radius: 50%;
+}
+
+.shape-button.square-mode .shape-toggle {
+    border-radius: 2px;
+}
+
+/* Анимации переходов */
+@keyframes to-circle {
+    0% {
+        transform: rotate(0);
+        border-radius: 2px;
+    }
+    25% {
+        transform: rotate(90deg);
+        border-radius: 15%;
+    }
+    50% {
+        transform: rotate(180deg);
+        border-radius: 30%;
+    }
+    75% {
+        transform: rotate(270deg);
+        border-radius: 40%;
+    }
+    100% {
+        transform: rotate(360deg);
+        border-radius: 50%;
+    }
+}
+
+@keyframes to-square {
+    0% {
+        transform: scaleX(1);
+        border-radius: 50%;
+    }
+    25% {
+        transform: scaleX(0.3);
+        border-radius: 40%;
+    }
+    50% {
+        transform: scaleX(-0.3);
+        border-radius: 25%;
+    }
+    75% {
+        transform: scaleX(-0.7);
+        border-radius: 10%;
+    }
+    100% {
+        transform: scaleX(-1);
+        border-radius: 2px;
+    }
+}
+
+/* Анимации при изменении формы */
+.shape-button.square-mode .shape-toggle.animating {
+    animation: to-circle 0.5s forwards;
+}
+
+.shape-button.circle-mode .shape-toggle.animating {
+    animation: to-square 0.5s forwards;
+}
+
+.shape-button.active {
+    border-color: rgba(140, 100, 255, 0.9);
+    box-shadow: 0 0 15px rgba(140, 100, 255, 0.6);
+}
+
+/* Стили для квадратных элементов */
+.bubble.square {
+    border-radius: 10px;
+}
+
+/* Styles for the mindmap generator button */
+.mindmap-gen-button {
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgba(80, 150, 255);
+}
+
+/* Main node circle in the center */
+.mindmap-gen-button .node-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    background-color: transparent;
+    border: 2px solid rgba(80, 150, 255);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+/* Left branch line */
+.mindmap-gen-button .left-branch {
+    position: absolute;
+    top: calc(50% - 9px);
+    left: calc(50% - 2px);
+    width: 0;
+    height: 2px;
+    background-color: rgba(80, 150, 255);
+    transform-origin: 0 0;
+    transform: rotate(125deg);
+    opacity: 0;
+    transition: all 0.3s ease;
+    transition-delay: 0.3s;
+    z-index: 1;
+    border-radius: 5px;
+}
+
+/* Right branch line */
+.mindmap-gen-button .right-branch {
+    position: absolute;
+    top: calc(50% - 10px);
+    left: calc(50% + 4px);
+    width: 0;
+    height: 2px;
+    background-color: rgba(80, 150, 255);
+    transform-origin: 0 0;
+    transform: rotate(55deg);
+    opacity: 0;
+    transition: all 0.3s ease;
+    transition-delay: 0.3s;
+    z-index: 1;
+    border-radius: 5px;
+}
+
+/* Left child node */
+.mindmap-gen-button .left-node {
+    position: absolute;
+    width: 0;
+    height: 0;
+    background-color: transparent;
+    border: 0 solid rgba(80, 150, 255);
+    border-radius: 50%;
+    opacity: 0;
+    transition: all 0.4s ease;
+    transition-delay: 0.6s;
+    z-index: 2;
+    /* Position will be set in hover state */
+}
+
+/* Right child node */
+.mindmap-gen-button .right-node {
+    position: absolute;
+    width: 0;
+    height: 0;
+    background-color: transparent;
+    border: 0 solid rgba(80, 150, 255);
+    border-radius: 50%;
+    opacity: 0;
+    transition: all 0.4s ease;
+    transition-delay: 0.6s;
+    z-index: 2;
+    /* Position will be set in hover state */
+}
+
+/* Hover animations */
+.mindmap-gen-button:hover {
+    border-color: #b9ed51;
+    box-shadow: 0 0 15px #b9ed51;
+}
+
+.mindmap-gen-button:hover .node-circle {
+    transform: translate(-50%, calc(-50% - 12px));
+    border-color: #b9ed51;
+    box-shadow: 0 0 5px #b9ed51;
+    transition: all 0.3s ease;
+}
+
+.mindmap-gen-button:not(:hover) .node-circle {
+    transform: translate(-50%, -50%);
+    border-color: rgba(80, 150, 255);
+    box-shadow: none;
+    transition: all 0s;
+}
+
+.mindmap-gen-button:hover .left-branch {
+    width: 15px;
+    opacity: 1;
+    background-color: #b9ed51;
+    box-shadow: 0 0 3px #b9ed51;
+    transition: all 0.3s ease;
+    transition-delay: 0.3s;
+}
+
+.mindmap-gen-button:not(:hover) .left-branch {
+    width: 0;
+    opacity: 0;
+    background-color: rgba(80, 150, 255);
+    box-shadow: none;
+    transition: all 0s;
+}
+
+.mindmap-gen-button:hover .right-branch {
+    width: 15px;
+    opacity: 1;
+    background-color: #b9ed51;
+    box-shadow: 0 0 3px #b9ed51;
+    transition: all 0.3s ease;
+    transition-delay: 0.3s;
+}
+
+.mindmap-gen-button:not(:hover) .right-branch {
+    width: 0;
+    opacity: 0;
+    background-color: rgba(80, 150, 255);
+    box-shadow: none;
+    transition: all 0s;
+}
+
+.mindmap-gen-button:hover .left-node {
+    width: 10px;
+    height: 10px;
+    border-width: 2px;
+    opacity: 1;
+    top: calc(50% + 1px);
+    left: calc(50% - 17px);
+    border-color: #b9ed51;
+    box-shadow: 0 0 5px #b9ed51;
+    transition: all 0.4s ease;
+    transition-delay: 0.6s;
+}
+
+.mindmap-gen-button:not(:hover) .left-node {
+    width: 0;
+    height: 0;
+    border-width: 0;
+    opacity: 0;
+    border-color: rgba(80, 150, 255);
+    box-shadow: none;
+    transition: all 0s;
+}
+
+.mindmap-gen-button:hover .right-node {
+    width: 10px;
+    height: 10px;
+    border-width: 2px;
+    opacity: 1;
+    top: calc(50% + 1px);
+    left: calc(50% + 7px);
+    border-color: #b9ed51;
+    box-shadow: 0 0 5px #b9ed51;
+    transition: all 0.4s ease;
+    transition-delay: 0.6s;
+}
+
+.mindmap-gen-button:not(:hover) .right-node {
+    width: 0;
+    height: 0;
+    border-width: 0;
+    opacity: 0;
+    border-color: rgba(80, 150, 255);
+    box-shadow: none;
+    transition: all 0s;
+}
+
+/* Active state */
+.mindmap-gen-button.active {
+    border-color: rgba(50, 205, 50, 0.9);
+    box-shadow: 0 0 15px rgba(50, 205, 50);
+}
+
+/* Pulsing animation for successful generation */
+.mindmap-gen-button.active .node-circle {
+    animation: pulse-success 1.5s infinite ease-in-out;
+}
+
+/* Special animation sequence when cursor is inside during activation */
+.mindmap-gen-button.active.hover-active .node-circle {
+    animation: reverse-to-center 0.8s ease-in-out forwards, pulse-success 1.5s infinite ease-in-out 0.8s;
+}
+
+.mindmap-gen-button.active.hover-active .left-node,
+.mindmap-gen-button.active.hover-active .right-node {
+    animation: fade-out-nodes 0.4s ease-out forwards;
+}
+
+.mindmap-gen-button.active.hover-active .left-branch,
+.mindmap-gen-button.active.hover-active .right-branch {
+    animation: shrink-branches 0.6s ease-out forwards;
+}
+
+@keyframes pulse-success {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.3);
+        opacity: 0.7;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes reverse-to-center {
+    0% {
+        transform: translate(-50%, calc(-50% - 12px));
+        border-color: #b9ed51;
+    }
+    100% {
+        transform: translate(-50%, -50%);
+        border-color: rgba(50, 205, 50, 0.9);
+    }
+}
+
+@keyframes fade-out-nodes {
+    0% {
+        width: 10px;
+        height: 10px;
+        border-width: 2px;
+        opacity: 1;
+    }
+    100% {
+        width: 0;
+        height: 0;
+        border-width: 0;
+        opacity: 0;
+    }
+}
+
+@keyframes shrink-branches {
+    0% {
+        width: 15px;
+        opacity: 1;
+    }
+    100% {
+        width: 0;
+        opacity: 0;
+    }
+}
+
+/* Class to maintain hover state during animations */
+.mindmap-gen-button.hover-maintain {
+    border-color: #b9ed51;
+    box-shadow: 0 0 15px #b9ed51;
+}
+
+.mindmap-gen-button.hover-maintain .node-circle {
+    transform: translate(-50%, calc(-50% - 12px));
+    border-color: #b9ed51;
+    box-shadow: 0 0 5px #b9ed51;
+}
+
+.mindmap-gen-button.hover-maintain .left-branch,
+.mindmap-gen-button.hover-maintain .right-branch {
+    width: 15px;
+    opacity: 1;
+    background-color: #b9ed51;
+    box-shadow: 0 0 3px #b9ed51;
+}
+
+.mindmap-gen-button.hover-maintain .left-node,
+.mindmap-gen-button.hover-maintain .right-node {
+    width: 10px;
+    height: 10px;
+    border-width: 2px;
+    opacity: 1;
+    top: calc(50% + 1px);
+    border-color: #b9ed51;
+    box-shadow: 0 0 5px #b9ed51;
+}
+
+.mindmap-gen-button.hover-maintain .left-node {
+    left: calc(50% - 17px);
+}
+
+.mindmap-gen-button.hover-maintain .right-node {
+    left: calc(50% + 7px);
+}
+
+/* Error state - red flash animation */
+.mindmap-gen-button.error-flash {
+    animation: error-flash 1s ease;
+}
+
+/* Make inner elements flash red too */
+.mindmap-gen-button.error-flash .node-circle {
+    animation: error-flash-nodes 1s ease;
+    background-color: transparent !important;
+}
+
+.mindmap-gen-button.error-flash .left-branch,
+.mindmap-gen-button.error-flash .right-branch {
+    animation: error-flash-branches 1s ease;
+    width: 15px !important; /* Ensure branches remain visible */
+    opacity: 1 !important; /* Ensure branches remain visible */
+}
+
+.mindmap-gen-button.error-flash .left-node,
+.mindmap-gen-button.error-flash .right-node {
+    animation: error-flash-nodes 1s ease;
+    width: 10px !important; /* Ensure nodes remain visible */
+    height: 10px !important; /* Ensure nodes remain visible */
+    opacity: 1 !important; /* Ensure nodes remain visible */
+    border-width: 2px !important; /* Ensure borders remain visible */
+    background-color: transparent !important;
+}
+
+@keyframes error-flash {
+    0% {
+        border-color: #b9ed51;
+        box-shadow: 0 0 15px #b9ed51;
+    }
+    50% {
+        border-color: rgba(255, 60, 60, 1);
+        box-shadow: 0 0 15px rgba(255, 60, 60, 0.8);
+    }
+    100% {
+        border-color: #b9ed51;
+        box-shadow: 0 0 15px #b9ed51;
+    }
+}
+
+/* Animation for branches (lines) */
+@keyframes error-flash-branches {
+    0% {
+        background-color: #b9ed51;
+        box-shadow: 0 0 3px #b9ed51;
+    }
+    50% {
+        background-color: rgba(255, 60, 60, 1);
+        box-shadow: 0 0 5px rgba(255, 60, 60, 0.8);
+    }
+    100% {
+        background-color: #b9ed51;
+        box-shadow: 0 0 3px #b9ed51;
+    }
+}
+
+/* Animation for nodes (circles) */
+@keyframes error-flash-nodes {
+    0% {
+        border-color: #b9ed51;
+        background-color: transparent;
+        box-shadow: 0 0 5px #b9ed51;
+    }
+    50% {
+        border-color: rgba(255, 60, 60, 1);
+        background-color: transparent;
+        box-shadow: 0 0 5px rgba(255, 60, 60, 0.8);
+    }
+    100% {
+        border-color: #b9ed51;
+        background-color: transparent;
+        box-shadow: 0 0 5px #b9ed51;
+    }
+}
+
+.mindmap-gen-button.active .node-circle,
+.mindmap-gen-button.active:hover .node-circle {
+    border-color: rgba(50, 205, 50, 0.9);
+    box-shadow: 0 0 5px rgba(50, 205, 50);
+}
+
+.mindmap-gen-button.active .left-branch,
+.mindmap-gen-button.active .right-branch,
+.mindmap-gen-button.active:hover .left-branch,
+.mindmap-gen-button.active:hover .right-branch {
+    background-color: rgba(50, 205, 50);
+    box-shadow: 0 0 3px rgba(50, 205, 50);
+}
+
+.mindmap-gen-button.active .left-node,
+.mindmap-gen-button.active .right-node,
+.mindmap-gen-button.active:hover .left-node,
+.mindmap-gen-button.active:hover .right-node {
+    border-color: rgba(50, 205, 50);
+    box-shadow: 0 0 5px rgba(50, 205, 50);
+}
